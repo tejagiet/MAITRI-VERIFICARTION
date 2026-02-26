@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import { supabase } from '../supabaseClient';
 import FeedbackCard from './FeedbackCard';
 
@@ -9,51 +9,72 @@ const Scanner = () => {
   const [isScanning, setIsScanning] = useState(true);
 
   useEffect(() => {
-    let html5QrcodeScanner = null;
+    let html5Qrcode = null;
 
     if (isScanning && !scanResult) {
-      html5QrcodeScanner = new Html5QrcodeScanner(
-        "reader",
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        /* verbose= */ false
-      );
-
-      html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+      html5Qrcode = new Html5Qrcode("reader");
+      
+      const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+      
+      // Use the back camera (environment facing)
+      html5Qrcode.start(
+        { facingMode: "environment" },
+        config,
+        onScanSuccess,
+        onScanFailure
+      ).catch(err => {
+        console.error("Camera start failed:", err);
+      });
     }
 
     return () => {
-      if (html5QrcodeScanner) {
-        html5QrcodeScanner.clear().catch(error => {
-          console.error("Failed to clear html5QrcodeScanner. ", error);
+      if (html5Qrcode && html5Qrcode.isScanning) {
+        html5Qrcode.stop().catch(error => {
+          console.error("Failed to stop html5Qrcode. ", error);
         });
       }
     };
   }, [isScanning, scanResult]);
 
   const onScanSuccess = async (decodedText) => {
-    setScanResult(decodedText);
+    const cleanPin = decodedText.trim();
+    setScanResult(cleanPin);
     setIsScanning(false);
     
     try {
-      // Check against Supabase database
+      // 1. Fetch user data
       const { data, error } = await supabase
         .from('maitri_registrations')
         .select('full_name, pin_number')
-        .eq('pin_number', decodedText)
-        .single();
+        .ilike('pin_number', cleanPin)
+        .maybeSingle();
         
       if (error) {
-         console.warn("Supabase lookup error or not found:", error);
+         console.warn("Supabase lookup error:", error);
+         setStudentData({ status: 'error', message: `DB Error: ${error.message}` });
+         return;
       }
 
       if (data) {
-        setStudentData({ status: 'success', ...data });
+        // 2. Mark Attendance immediately after validating
+        const { error: updateError } = await supabase
+          .from('maitri_registrations')
+          .update({ attended_fest: true })
+          .ilike('pin_number', cleanPin);
+
+        if (updateError) {
+           console.warn("Failed to mark attendance:", updateError);
+           // We might still want to grant entry if the update fails, but warn the admin.
+           setStudentData({ status: 'success', ...data, message: 'Warning: Failed to log attendance in DB' });
+        } else {
+           setStudentData({ status: 'success', ...data });
+        }
       } else {
         setStudentData({ status: 'error', message: 'Invalid Pass or Not Registered' });
       }
     } catch (err) {
       console.error("Database connection error:", err);
-      setStudentData({ status: 'error', message: 'Connection Error' });
+      setStudentData({ status: 'error', message: `Connection Error: ${err.message}` });
     }
   };
 
@@ -69,14 +90,14 @@ const Scanner = () => {
   };
 
   return (
-    <div className="flex flex-col items-center p-4 bg-slate-900 min-h-screen text-white">
+    <div className="flex flex-col items-center p-4 bg-slate-900 min-h-[100dvh] w-full text-white">
       <div className="w-full max-w-sm flex items-center justify-between mb-8 mt-4">
         <h1 className="text-2xl font-black text-purple-400 tracking-tight">VERIFIER</h1>
         <div className="h-3 w-3 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.7)] animate-pulse"></div>
       </div>
       
       {!studentData ? (
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm flex-1 flex flex-col justify-center">
           <p className="text-slate-400 text-center mb-4 text-sm font-medium uppercase tracking-widest">Point Camera at QR Code</p>
           <div className="rounded-xl overflow-hidden border-2 border-purple-500/50 bg-slate-800 shadow-xl shadow-purple-900/20 relative">
             <div id="reader" className="w-full scanner-container"></div>
@@ -84,11 +105,13 @@ const Scanner = () => {
           </div>
         </div>
       ) : (
-        <FeedbackCard 
-          studentData={studentData} 
-          scanResult={scanResult} 
-          onReset={resetScanner} 
-        />
+        <div className="w-full flex-1 flex flex-col justify-center mt-[-4rem]">
+          <FeedbackCard 
+            studentData={studentData} 
+            scanResult={scanResult} 
+            onReset={resetScanner} 
+          />
+        </div>
       )}
     </div>
   );
