@@ -2,7 +2,7 @@ const FeedbackCard = ({ studentData, scanResult, onReset }) => {
   const isSuccess = studentData.status === 'success';
 
   return (
-    <div className={`relative p-8 rounded-[2rem] w-full max-w-sm flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-500 animate-in fade-in zoom-in-95 overflow-hidden border ${
+    <div className={`relative p-8 rounded-[2rem] w-full h-full md:h-auto max-w-sm flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-500 animate-in fade-in zoom-in-95 overflow-hidden border ${
       isSuccess 
         ? 'bg-gradient-to-b from-green-950/90 to-slate-950 border-green-500/30 shadow-[0_0_50px_rgba(34,197,94,0.15)]' 
         : 'bg-gradient-to-b from-red-950/90 to-slate-950 border-red-500/30 shadow-[0_0_50px_rgba(239,68,68,0.15)]'
