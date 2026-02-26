@@ -7,6 +7,7 @@ const Scanner = () => {
   const [scanResult, setScanResult] = useState(null);
   const [studentData, setStudentData] = useState(null);
   const [isScanning, setIsScanning] = useState(true);
+  const [manualPin, setManualPin] = useState('');
 
   useEffect(() => {
     let html5Qrcode = null;
@@ -87,6 +88,14 @@ const Scanner = () => {
     setStudentData(null);
     setScanResult(null);
     setIsScanning(true);
+    setManualPin('');
+  };
+
+  const handleManualSubmit = (e) => {
+    e.preventDefault();
+    if (manualPin.trim()) {
+      onScanSuccess(manualPin);
+    }
   };
 
   return (
@@ -102,6 +111,30 @@ const Scanner = () => {
           <div className="rounded-xl overflow-hidden border-2 border-purple-500/50 bg-slate-800 shadow-xl shadow-purple-900/20 relative">
             <div id="reader" className="w-full scanner-container"></div>
             {/* Custom overlay styling for the scanner area can be added via CSS if needed */}
+          </div>
+          
+          <div className="mt-8">
+            <div className="flex items-center gap-4 py-2">
+              <div className="flex-1 h-px bg-slate-700"></div>
+              <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">OR ENTER PIN</span>
+              <div className="flex-1 h-px bg-slate-700"></div>
+            </div>
+            
+            <form onSubmit={handleManualSubmit} className="mt-4 flex gap-2">
+              <input 
+                type="text" 
+                placeholder="e.g. 12345-AI-001" 
+                value={manualPin}
+                onChange={(e) => setManualPin(e.target.value)}
+                className="flex-1 bg-slate-800 border border-slate-600 rounded-lg py-3 px-4 text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors font-mono"
+              />
+              <button 
+                type="submit"
+                className="bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+              >
+                Verify
+              </button>
+            </form>
           </div>
         </div>
       ) : (
