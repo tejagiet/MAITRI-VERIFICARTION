@@ -8,7 +8,7 @@ function App() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (password === 'maitri2026') {
+    if (password === 'GIET@1506') {
       setIsAdmin(true);
       setError('');
     } else {
