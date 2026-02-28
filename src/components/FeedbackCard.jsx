@@ -1,11 +1,39 @@
-const FeedbackCard = ({ studentData, scanResult, onReset }) => {
-  const isSuccess = studentData.status === 'success';
-  const isVip = studentData.isVip;
-  const blockName = studentData.blockName;
+import React from 'react';
+import { Share, CheckCircle, XCircle, ShieldAlert } from 'lucide-react';
+
+const FeedbackCard = ({ data, onNext, isComplaint = false }) => {
+  if (!data) return null;
+
+  const isSuccess = data.status === 'success';
+  const isVip = data.isVip;
+  const blockName = data.blockName;
+
+  if (isSuccess && isComplaint) {
+    return (
+      <div className="bg-red-900 rounded-lg shadow-xl shadow-red-900/50 p-6 w-full max-w-sm mx-auto text-center border-2 border-red-500 transform transition-all animate-pulse">
+        <ShieldAlert className="w-16 h-16 text-white mx-auto mb-4" />
+        <h2 className="text-xl font-bold text-white mb-2 uppercase break-words">{data.message || 'PASS SUSPENDED'}</h2>
+
+        <div className="bg-black/50 rounded p-4 mb-4 text-left border border-red-700">
+          <p className="text-gray-300 text-sm"><strong>Name:</strong> {data.full_name}</p>
+          <p className="text-gray-300 text-sm"><strong>PIN:</strong> {data.pin_number || data.vip_code || data.fac_code || 'N/A'}</p>
+          <p className="text-gray-300 text-sm"><strong>Phone:</strong> {data.mobile_number || data.phone || 'N/A'}</p>
+          <p className="text-gray-300 text-sm"><strong>Block:</strong> {data.blockName}</p>
+        </div>
+
+        <button
+          onClick={onNext}
+          className="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-3 rounded uppercase border border-red-500 shadow-inner"
+        >
+          Acknowledge & Next
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className={`relative p-8 rounded-[2rem] w-full h-full md:h-auto max-w-sm flex flex-col items-center justify-center text-center shadow-2xl transition-all duration-500 animate-in fade-in zoom-in-95 overflow-hidden border ${!isSuccess
-      ? 'bg-gradient-to-b from-red-950/90 to-slate-950 border-red-500/30 shadow-[0_0_50px_rgba(239,68,68,0.15)]'
+      ? 'bg-red-950/90 border-red-500 shadow-red-900/50'
       : isVip
         ? 'bg-gradient-to-b from-amber-950/90 via-yellow-900/40 to-slate-950 border-yellow-500/50 shadow-[0_0_50px_rgba(234,179,8,0.25)]'
         : 'bg-gradient-to-b from-green-950/90 to-slate-950 border-green-500/30 shadow-[0_0_50px_rgba(34,197,94,0.15)]'

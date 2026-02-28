@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Scanner from './components/Scanner';
 import ObserverDashboard from './components/ObserverDashboard';
+import ComplaintScanner from './components/ComplaintScanner';
 
 function App() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -20,7 +21,11 @@ function App() {
   };
 
   if (view === 'observer') {
-    return <ObserverDashboard onExit={() => setView(isAdmin ? 'scanner' : 'login')} />;
+    return <ObserverDashboard onExit={() => setView('login')} onGoToComplaints={() => setView('complaints')} />;
+  }
+
+  if (view === 'complaints') {
+    return <ComplaintScanner onExit={() => setView('observer')} />;
   }
 
   if (view === 'login' || !isAdmin) {

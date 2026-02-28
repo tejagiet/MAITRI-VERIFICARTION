@@ -9,6 +9,7 @@ ALTER TABLE giet_engineering ADD COLUMN IF NOT EXISTS entered_at TIMESTAMP WITH 
 ALTER TABLE giet_pharmacy ADD COLUMN IF NOT EXISTS entered_at TIMESTAMP WITH TIME ZONE;
 ALTER TABLE giet_polytechnic ADD COLUMN IF NOT EXISTS entered_at TIMESTAMP WITH TIME ZONE;
 ALTER TABLE maitri_vip_registrations ADD COLUMN IF NOT EXISTS entered_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE maitri_faculty_registrations ADD COLUMN IF NOT EXISTS entered_at TIMESTAMP WITH TIME ZONE;
 
 ALTER TABLE ggu_students ADD COLUMN IF NOT EXISTS is_vip BOOLEAN DEFAULT false;
 ALTER TABLE giet_degree ADD COLUMN IF NOT EXISTS is_vip BOOLEAN DEFAULT false;
@@ -16,7 +17,17 @@ ALTER TABLE giet_engineering ADD COLUMN IF NOT EXISTS is_vip BOOLEAN DEFAULT fal
 ALTER TABLE giet_pharmacy ADD COLUMN IF NOT EXISTS is_vip BOOLEAN DEFAULT false;
 ALTER TABLE giet_polytechnic ADD COLUMN IF NOT EXISTS is_vip BOOLEAN DEFAULT false;
 ALTER TABLE maitri_vip_registrations ADD COLUMN IF NOT EXISTS is_vip BOOLEAN DEFAULT true;
+ALTER TABLE maitri_faculty_registrations ADD COLUMN IF NOT EXISTS is_vip BOOLEAN DEFAULT false;
+ALTER TABLE maitri_faculty_registrations ADD COLUMN IF NOT EXISTS attended_fest BOOLEAN DEFAULT false;
 
+-- Add 'is_suspended' column for the Observer Suspension Portal
+ALTER TABLE ggu_students ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT false;
+ALTER TABLE giet_degree ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT false;
+ALTER TABLE giet_engineering ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT false;
+ALTER TABLE giet_pharmacy ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT false;
+ALTER TABLE giet_polytechnic ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT false;
+ALTER TABLE maitri_vip_registrations ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT false;
+ALTER TABLE maitri_faculty_registrations ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT false;
 
 -- =========================================================================
 -- SQL query to forcefully mark attendance for a specific PIN manually

@@ -18,7 +18,7 @@ const Scanner = () => {
     'giet_pharmacy',
     'giet_polytechnic',
     'maitri_vip_registrations',
-    'faculty_registrations'
+    'maitri_faculty_registrations'
   ];
 
   // GOOGLE SHEETS WEB APP URL - Placeholder (User needs to provide this)
@@ -147,6 +147,7 @@ const Scanner = () => {
     try {
       let matchData = null;
       let matchTable = null;
+      let matchPinColumn = 'pin_number';
       let hasNetworkError = false;
 
       // 1. Fetch user data across all tables sequentially
@@ -154,6 +155,8 @@ const Scanner = () => {
         let pinColumn = 'pin_number';
         if (table === 'maitri_vip_registrations') {
           pinColumn = 'vip_code';
+        } else if (table === 'maitri_faculty_registrations') {
+          pinColumn = 'fac_code';
         }
 
         console.log(`[SCANNER START] Verifying PIN: "${cleanPin}" against ${table}.${pinColumn}`);
@@ -161,7 +164,7 @@ const Scanner = () => {
         // Use .ilike for case-insensitive matching (fixes "ai" != "AI" input problems)
         const { data, error } = await supabase
           .from(table)
-          .select(`id, full_name, ${pinColumn}, is_vip, entered_at, attended_fest, mobile_number`)
+          .select(`id, full_name, ${pinColumn}, is_vip, is_suspended, entered_at, attended_fest, mobile_number`)
           .ilike(pinColumn, cleanPin)
           .maybeSingle();
 
@@ -169,13 +172,14 @@ const Scanner = () => {
         if (error && error.message?.includes('mobile_number')) {
           const { data: retryData, error: retryError } = await supabase
             .from(table)
-            .select(`id, full_name, ${pinColumn}, is_vip, entered_at, attended_fest, phone`)
+            .select(`id, full_name, ${pinColumn}, is_vip, is_suspended, entered_at, attended_fest, phone`)
             .ilike(pinColumn, cleanPin)
             .maybeSingle();
 
           if (retryData) {
             matchData = { ...retryData, mobile_number: retryData.phone };
             matchTable = table;
+            matchPinColumn = pinColumn;
             break;
           }
         }
@@ -188,11 +192,22 @@ const Scanner = () => {
         if (data) {
           matchData = data;
           matchTable = table;
+          matchPinColumn = pinColumn;
           break; // Found the pass, stop checking other tables
         }
       }
 
       if (matchData) {
+        if (matchData.is_suspended) {
+          setStudentData({
+            status: 'error',
+            message: '🚨 PASS SUSPENDED - ENTRY DENIED 🚨',
+            full_name: matchData.full_name,
+            blockName: matchTable.replace(/_/g, ' ').toUpperCase()
+          });
+          return;
+        }
+
         // Map internal table names to professional display names for Google Sheet tabs
         const tableToBlock = {
           'ggu_students': 'GGU COLLEGE',
@@ -201,7 +216,7 @@ const Scanner = () => {
           'giet_pharmacy': 'GIET PHARMACY',
           'giet_polytechnic': 'GIET POLY',
           'maitri_vip_registrations': 'VIP GUESTS',
-          'faculty_registrations': 'FACULTY & STAFF'
+          'maitri_faculty_registrations': 'FACULTY & STAFF'
         };
 
         const blockName = tableToBlock[matchTable] || matchTable.replace(/_/g, ' ').toUpperCase();
@@ -209,7 +224,7 @@ const Scanner = () => {
 
         // 2. Mark Attendance immediately after validating
         const now = new Date().toISOString();
-        let updatePinColumn = matchTable === 'maitri_vip_registrations' ? 'vip_code' : 'pin_number';
+        let updatePinColumn = matchPinColumn; // Use the same column we just searched with
 
         const { error: updateError } = await supabase
           .from(matchTable)

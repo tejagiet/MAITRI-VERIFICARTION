@@ -8,10 +8,10 @@ const TABLES = [
     'giet_pharmacy',
     'giet_polytechnic',
     'maitri_vip_registrations',
-    'faculty_registrations'
+    'maitri_faculty_registrations'
 ];
 
-const ObserverDashboard = ({ onExit }) => {
+const ObserverDashboard = ({ onExit, onGoToComplaints }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
     const [stats, setStats] = useState({ total: 0, vip: 0, student: 0, today: 0 });
@@ -70,7 +70,7 @@ const ObserverDashboard = ({ onExit }) => {
                                 'giet_pharmacy': 'GIET PHARMACY',
                                 'giet_polytechnic': 'GIET POLY',
                                 'maitri_vip_registrations': 'VIP GUESTS',
-                                'faculty_registrations': 'FACULTY & STAFF'
+                                'maitri_faculty_registrations': 'FACULTY & STAFF'
                             };
 
                             allRecentLogs.push({
