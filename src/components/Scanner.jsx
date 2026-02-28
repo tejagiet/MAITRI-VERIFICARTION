@@ -17,8 +17,54 @@ const Scanner = () => {
     'giet_engineering',
     'giet_pharmacy',
     'giet_polytechnic',
-    'maitri_vip_registrations'
+    'maitri_vip_registrations',
+    'faculty_registrations'
   ];
+
+  // GOOGLE SHEETS WEB APP URL - Placeholder (User needs to provide this)
+  const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwahai0JdMEhS-5otFqDWawl-caWyfIugBu5tQZgKqkb6x4ubnqoVhQYbbvd8iT3Ecx/exec';
+
+  const syncToGoogleSheets = async (studentData) => {
+    if (!GOOGLE_SHEETS_URL) return;
+
+    try {
+      // Get IST time
+      const date = new Date(studentData.entered_at);
+      const istTime = date.toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+
+      const payload = {
+        id: studentData.id || studentData.pin_number || studentData.vip_code || 'N/A',
+        full_name: studentData.full_name,
+        pin_number: studentData.pin_number || studentData.vip_code || 'N/A',
+        mobile_number: studentData.mobile_number || studentData.phone || 'N/A',
+        block: studentData.blockName,
+        entered_at_ist: istTime
+      };
+
+      await fetch(GOOGLE_SHEETS_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Apps Script requires no-cors if not handling CORS explicitly
+        cache: 'no-cache',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
+      });
+
+      console.log("[SYNC] Data sent to Google Sheets for:", studentData.full_name);
+    } catch (err) {
+      console.error("[SYNC_ERROR] Google Sheets sync failed:", err);
+    }
+  };
 
   useEffect(() => {
     const fetchCount = async () => {
@@ -115,9 +161,24 @@ const Scanner = () => {
         // Use .ilike for case-insensitive matching (fixes "ai" != "AI" input problems)
         const { data, error } = await supabase
           .from(table)
-          .select(`full_name, ${pinColumn}, is_vip, entered_at, attended_fest`)
+          .select(`id, full_name, ${pinColumn}, is_vip, entered_at, attended_fest, mobile_number`)
           .ilike(pinColumn, cleanPin)
           .maybeSingle();
+
+        // Fallback for tables that might use 'phone' instead of 'mobile_number'
+        if (error && error.message?.includes('mobile_number')) {
+          const { data: retryData, error: retryError } = await supabase
+            .from(table)
+            .select(`id, full_name, ${pinColumn}, is_vip, entered_at, attended_fest, phone`)
+            .ilike(pinColumn, cleanPin)
+            .maybeSingle();
+
+          if (retryData) {
+            matchData = { ...retryData, mobile_number: retryData.phone };
+            matchTable = table;
+            break;
+          }
+        }
 
         if (error && error.code !== 'PGRST116' && error.code !== '400') {
           hasNetworkError = true;
@@ -132,14 +193,19 @@ const Scanner = () => {
       }
 
       if (matchData) {
-        // Determine VIP Status and Block Name
-        let blockName = matchTable.replace(/_/g, ' ').toUpperCase();
-        if (matchTable === 'maitri_vip_registrations') {
-          blockName = 'VIP RESERVED';
-        }
+        // Map internal table names to professional display names for Google Sheet tabs
+        const tableToBlock = {
+          'ggu_students': 'GGU COLLEGE',
+          'giet_degree': 'GIET DEGREE',
+          'giet_engineering': 'GIET ENGINEERING',
+          'giet_pharmacy': 'GIET PHARMACY',
+          'giet_polytechnic': 'GIET POLY',
+          'maitri_vip_registrations': 'VIP GUESTS',
+          'faculty_registrations': 'FACULTY & STAFF'
+        };
 
-        // Check if the user is from the VIP table, or uses the fallback VIP indicators
-        const isVip = matchTable === 'maitri_vip_registrations' || matchData.is_vip || cleanPin.toUpperCase().includes('VIP') || cleanPin.toUpperCase().startsWith('V');
+        const blockName = tableToBlock[matchTable] || matchTable.replace(/_/g, ' ').toUpperCase();
+        const isVip = matchTable === 'maitri_vip_registrations' || matchData.is_vip;
 
         // 2. Mark Attendance immediately after validating
         const now = new Date().toISOString();
@@ -162,13 +228,17 @@ const Scanner = () => {
           });
         } else {
           setTotalAttended(prev => prev + 1);
-          setStudentData({
+          const completeData = {
             status: 'success',
             ...matchData,
             entered_at: now,
             blockName: blockName,
             isVip: isVip
-          });
+          };
+          setStudentData(completeData);
+
+          // Trigger Google Sheets Sync
+          syncToGoogleSheets(completeData);
         }
       } else {
         if (hasNetworkError) {

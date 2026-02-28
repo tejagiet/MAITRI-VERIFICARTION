@@ -7,7 +7,8 @@ const TABLES = [
     'giet_engineering',
     'giet_pharmacy',
     'giet_polytechnic',
-    'maitri_vip_registrations'
+    'maitri_vip_registrations',
+    'faculty_registrations'
 ];
 
 const ObserverDashboard = ({ onExit }) => {
@@ -62,11 +63,20 @@ const ObserverDashboard = ({ onExit }) => {
 
                         // Push to logs if it has an entry time
                         if (row.entered_at) {
+                            const tableToBlock = {
+                                'ggu_students': 'GGU COLLEGE',
+                                'giet_degree': 'GIET DEGREE',
+                                'giet_engineering': 'GIET ENGINEERING',
+                                'giet_pharmacy': 'GIET PHARMACY',
+                                'giet_polytechnic': 'GIET POLY',
+                                'maitri_vip_registrations': 'VIP GUESTS',
+                                'faculty_registrations': 'FACULTY & STAFF'
+                            };
+
                             allRecentLogs.push({
                                 ...row,
                                 table: table,
-                                // Assign a block name
-                                blockName: table === 'maitri_vip_registrations' ? 'VIP RESERVED' : table.replace(/_/g, ' ').toUpperCase()
+                                blockName: tableToBlock[table] || table.replace(/_/g, ' ').toUpperCase()
                             });
                         }
                     });
