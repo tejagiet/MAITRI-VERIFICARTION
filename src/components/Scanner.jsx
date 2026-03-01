@@ -164,7 +164,7 @@ const Scanner = () => {
         // Use .ilike for case-insensitive matching (fixes "ai" != "AI" input problems)
         const { data, error } = await supabase
           .from(table)
-          .select(`id, full_name, ${pinColumn}, is_vip, is_suspended, entered_at, attended_fest, mobile_number`)
+          .select(`id, full_name, ${pinColumn}, is_vip, entered_at, attended_fest, mobile_number`)
           .ilike(pinColumn, cleanPin)
           .maybeSingle();
 
@@ -172,7 +172,7 @@ const Scanner = () => {
         if (error && error.message?.includes('mobile_number')) {
           const { data: retryData, error: retryError } = await supabase
             .from(table)
-            .select(`id, full_name, ${pinColumn}, is_vip, is_suspended, entered_at, attended_fest, phone`)
+            .select(`id, full_name, ${pinColumn}, is_vip, entered_at, attended_fest, phone`)
             .ilike(pinColumn, cleanPin)
             .maybeSingle();
 
@@ -198,15 +198,7 @@ const Scanner = () => {
       }
 
       if (matchData) {
-        if (matchData.is_suspended) {
-          setStudentData({
-            status: 'error',
-            message: '🚨 PASS SUSPENDED - ENTRY DENIED 🚨',
-            full_name: matchData.full_name,
-            blockName: matchTable.replace(/_/g, ' ').toUpperCase()
-          });
-          return;
-        }
+
 
         // Map internal table names to professional display names for Google Sheet tabs
         const tableToBlock = {
@@ -259,7 +251,11 @@ const Scanner = () => {
         if (hasNetworkError) {
           setStudentData({ status: 'error', message: `DB Connection Error. Check console.` });
         } else {
-          setStudentData({ status: 'error', message: 'Invalid Pass or Not Registered' });
+          setStudentData({
+            status: 'error',
+            message: 'Pass Not Found',
+            pin_number: cleanPin
+          });
         }
       }
     } catch (err) {
@@ -371,9 +367,8 @@ const Scanner = () => {
             ) : (
               <div className="w-full h-full flex items-center justify-center animate-in zoom-in-95 md:slide-in-from-right-8 duration-300">
                 <FeedbackCard
-                  studentData={studentData}
-                  scanResult={scanResult}
-                  onReset={resetScanner}
+                  data={studentData}
+                  onNext={resetScanner}
                 />
               </div>
             )}

@@ -20,14 +20,14 @@ ALTER TABLE maitri_vip_registrations ADD COLUMN IF NOT EXISTS is_vip BOOLEAN DEF
 ALTER TABLE maitri_faculty_registrations ADD COLUMN IF NOT EXISTS is_vip BOOLEAN DEFAULT false;
 ALTER TABLE maitri_faculty_registrations ADD COLUMN IF NOT EXISTS attended_fest BOOLEAN DEFAULT false;
 
--- Add 'is_suspended' column for the Observer Suspension Portal
-ALTER TABLE ggu_students ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT false;
-ALTER TABLE giet_degree ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT false;
-ALTER TABLE giet_engineering ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT false;
-ALTER TABLE giet_pharmacy ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT false;
-ALTER TABLE giet_polytechnic ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT false;
-ALTER TABLE maitri_vip_registrations ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT false;
-ALTER TABLE maitri_faculty_registrations ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT false;
+-- 4. Revert: Drop the is_suspended column from all tables
+ALTER TABLE public.ggu_students DROP COLUMN IF EXISTS is_suspended;
+ALTER TABLE public.giet_degree DROP COLUMN IF EXISTS is_suspended;
+ALTER TABLE public.giet_engineering DROP COLUMN IF EXISTS is_suspended;
+ALTER TABLE public.giet_pharmacy DROP COLUMN IF EXISTS is_suspended;
+ALTER TABLE public.giet_polytechnic DROP COLUMN IF EXISTS is_suspended;
+ALTER TABLE public.maitri_vip_registrations DROP COLUMN IF EXISTS is_suspended;
+ALTER TABLE public.maitri_faculty_registrations DROP COLUMN IF EXISTS is_suspended;
 
 -- =========================================================================
 -- SQL query to forcefully mark attendance for a specific PIN manually

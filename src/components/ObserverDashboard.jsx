@@ -11,7 +11,7 @@ const TABLES = [
     'maitri_faculty_registrations'
 ];
 
-const ObserverDashboard = ({ onExit, onGoToComplaints }) => {
+const ObserverDashboard = ({ onExit }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
     const [stats, setStats] = useState({ total: 0, vip: 0, student: 0, today: 0 });
@@ -157,11 +157,13 @@ const ObserverDashboard = ({ onExit, onGoToComplaints }) => {
 
     return (
         <div className="flex flex-col min-h-[100dvh] bg-slate-950 text-white p-4 md:p-8 relative">
-            <button onClick={onExit} className="absolute top-4 md:top-8 left-4 md:left-8 bg-slate-800 hover:bg-slate-700 py-2 px-4 rounded-lg font-bold text-xs md:text-sm uppercase tracking-wider transition-colors z-20 border border-slate-700">
-                ← Exit Dashboard
-            </button>
+            <div className="absolute top-4 md:top-8 left-4 md:left-8 flex gap-4 z-20">
+                <button onClick={onExit} className="bg-slate-800 hover:bg-slate-700 py-2 px-4 rounded-lg font-bold text-xs md:text-sm uppercase tracking-wider transition-colors border border-slate-700">
+                    ← Exit Dashboard
+                </button>
+            </div>
 
-            <div className="max-w-6xl mx-auto w-full pt-16 md:pt-10 z-10 relative">
+            <div className="max-w-6xl mx-auto w-full pt-20 md:pt-16 z-10 relative">
                 <div className="flex flex-col md:flex-row items-center justify-between mb-8 md:mb-12 gap-4">
                     <div>
                         <h1 className="text-2xl md:text-4xl font-black bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent tracking-tight">LIVE DASHBOARD</h1>
