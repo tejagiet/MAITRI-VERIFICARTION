@@ -20,7 +20,7 @@ const ObserverDashboard = ({ onExit }) => {
 
     const handleLogin = (e) => {
         e.preventDefault();
-        if (password === 'observer123') { // Simple password matching user requirements
+        if (password === 'maitri2026') { // Simple password matching user requirements
             setIsAuthenticated(true);
             fetchDashboardData();
         } else {
@@ -257,3 +257,4 @@ const ObserverDashboard = ({ onExit }) => {
 };
 
 export default ObserverDashboard;
+
